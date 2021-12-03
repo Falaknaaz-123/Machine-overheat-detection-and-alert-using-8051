@@ -1,0 +1,107 @@
+#include<reg51.h>
+#define lcd P0
+#define dat P3
+sbit rs=P2^0;
+sbit e=P2^1;
+
+
+void delay (int);
+void display (unsigned char);
+void cmd (unsigned char);
+void init (void);
+void string (char *);
+void intro (void);
+unsigned char degree[8]={0x0e,0x0a,0x0e,0x00,0x00,0x00,0x00,0x00};
+char i=0;
+
+void delay (int d)
+{
+	unsigned char i=0;
+	for(;d>0;d--)
+	{
+		for(i=250;i>0;i--);
+		for(i=248;i>0;i--);
+	}
+}
+void cmd (unsigned char c)
+{
+	lcd=c;
+	rs=0;
+	e=1;
+	delay(10);
+	e=0;
+}
+void display (unsigned char c)
+{
+	lcd=c;
+	rs=1;
+	e=1;
+	delay(10);
+	e=0;
+}
+void string (char *c)
+{
+	while(*c)
+	{
+		display(*c++);
+	}
+}
+void init (void)
+{
+	cmd(0x38);
+	cmd(0x01);
+  cmd(0x0c);
+	cmd(0x80);
+}
+void intro (void)
+{
+	string("  Electronics  ");
+	cmd(0xc0);
+	string("      Hub      ");
+	delay(1000);
+	cmd(0x01);
+	string("    Digital    ");
+	cmd(0xc0);
+	string("  Thermometer  ");
+	delay(1000);
+	cmd(0x01);
+		cmd(0x40);
+		for(i=0;i<8;i++)
+		display(degree[i]);
+	  i=0;
+	 cmd(0x80);
+}
+
+void main()
+{
+	unsigned int val=0;
+	unsigned int temp=0;
+	init();
+	intro();
+	dat=0xff;
+	while(1)
+	{
+		if(i==0)
+		{
+			string("Temp: ");
+			i++;
+		}
+		val=dat*1.953;
+		cmd(0x86);
+		
+		
+		temp=(((val/10)%10)+48);
+		display(temp);
+		
+		temp=((val%10)+48);
+		display(temp);
+    if(i==1)
+		{
+		display(0);
+		string("C");
+			i++;
+		}
+		delay(300);
+	}
+	while(1);
+}
